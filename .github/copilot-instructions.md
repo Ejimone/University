@@ -2,15 +2,10 @@
 
 The WassupHq algorithm is modular, with each module tailored to a specific feature—academic assistance, campus marketplace, and freelancing—while incorporating location-based services and cross-module recommendations. It aligns with the strategic refinements identified in your report, such as ethical AI use, robust quality control, and secure API integrations.
 
-### 1. User Registration and Authentication
+### 1. User Authentication Module
 
-- **Purpose**: Ensure only college students access the platform and secure their data.
-- **Input**: User's `.edu` email, personal details (e.g., name, university, location).
 - **Process**:
-  1. Verify the `.edu` email to confirm student status.
-  2. Create a user profile with basic information.
-  3. Implement secure authentication using OAuth 2.0 for API integrations (e.g., Google Classroom).
-  4. Encrypt user data for privacy compliance (e.g., GDPR, CCPA).
+  1. Use Google OAuth for authentication.
 - **Output**: Verified user account with access to app features.
 
 ---
