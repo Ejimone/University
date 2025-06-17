@@ -1,0 +1,1 @@
+# this is where the assignment will be done, it will import RAG, then automatically do the assignment using different ai models, the solution will be generated and to be uploaded to the classroom service using upload-assignment.py
