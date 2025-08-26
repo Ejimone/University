@@ -1,1 +1,0 @@
-# For RAG, this is if the user wants to do an assignment based on the resources in the classroom, it will download, then the PDF will be proccessed and done
