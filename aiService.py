@@ -37,7 +37,7 @@ if not check_api_key():
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
 # The user's high-level goal for the agent
-USER_GOAL = "Open the browser, go to google.com, search for 'latest news about ISRO', and find the title of the first news article."
+USER_GOAL = "Open the browser, go to google.com, search for 'https://classroom.google.com/', navigate through the all the courses and check  all the assignments or a classwork given"
 
 # --- The Agent's "Body and Mind" ---
 
