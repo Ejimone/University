@@ -8,9 +8,32 @@ import mss
 import pyautogui
 from PIL import Image
 import google.generativeai as genai
+import os
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 # --- Configuration ---
 # Configure the Gemini API key
+def check_api_key():
+    """Check if the API key is properly configured"""
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        print("❌ ERROR: GEMINI_API_KEY environment variable not set!")
+        print("Please set your API key with: export GEMINI_API_KEY='your_api_key_here'")
+        return False
+    if len(api_key) < 20:  # Basic sanity check
+        print("❌ ERROR: GEMINI_API_KEY appears to be invalid (too short)")
+        return False
+    print(f"✅ API key found (length: {len(api_key)})")
+    return True
+
+# Check API key before configuring
+if not check_api_key():
+    exit(1)
+
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
 # The user's high-level goal for the agent
@@ -70,17 +93,29 @@ def get_agent_action(screenshot, objective):
     {{"action": "FINISH", "parameters": {{"final_answer": "Chandrayaan-4 mission approved by government."}}}}
     """
     
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    response = model.generate_content([prompt, screenshot])
+    # Create the proper image content format for Gemini API
+    image_content = {
+        "mime_type": screenshot["mime_type"],
+        "data": screenshot["data"]
+    }
     
-    # Clean up the model's response to extract only the JSON
     try:
-        # The model sometimes wraps the JSON in ```json ... ```
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        response = model.generate_content([prompt, image_content])
+        
+        # Clean up the model's response to extract only the JSON
         clean_response = response.text.strip().replace("```json", "").replace("```", "").strip()
         return json.loads(clean_response)
     except (json.JSONDecodeError, AttributeError) as e:
         print(f"Error decoding model response: {e}")
-        print(f"Raw response: {response.text}")
+        print(f"Raw response: {response.text if hasattr(response, 'text') else 'No response text'}")
+        return None
+    except Exception as e:
+        print(f"API Error: {e}")
+        print("This might be due to:")
+        print("1. Invalid API key - check your GEMINI_API_KEY environment variable")
+        print("2. API quota exceeded")
+        print("3. Invalid image format")
         return None
 
 def execute_action(action_command):
