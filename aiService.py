@@ -37,7 +37,8 @@ if not check_api_key():
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
 # The user's high-level goal for the agent
-USER_GOAL = "Open the browser, go to google.com, search for 'https://classroom.google.com/', navigate through the all the courses and check  all the assignments or a classwork given"
+# The user's high-level goal for the agent
+USER_GOAL = "My goal is to check for any new assignments in the 'Design and Analysis of Algms' course. https://classroom.google.com/"
 
 # --- The Agent's "Body and Mind" ---
 
@@ -62,47 +63,58 @@ def take_screenshot():
             'data': base64.b64encode(img_byte_arr.getvalue()).decode()
         }
 
-def get_agent_action(screenshot, objective):
+def get_agent_action(screenshot, objective, history):
     """
-    The "Brain" of the agent. It sends the current view (screenshot) and the objective
-    to the Gemini model and asks for the next action to take.
+    The "Brain" of the agent. It sends the current view (screenshot), the objective,
+    and the history of previous actions to the Gemini model and asks for the next action.
     """
     print("🧠 Thinking about the next action...")
-    
+
     # This is the core prompt that guides the agent
     prompt = f"""
     You are an autonomous AI agent controlling a computer. Your high-level objective is: '{objective}'.
-    
-    Based on the provided screenshot, what is the single next action you should take to move towards this objective?
-    
+
+    You have already taken the following actions:
+    {history}
+
+    Based on the provided screenshot and your past actions, what is the single next action you should take to move towards your objective?
+    If you are stuck in a loop, try a different action. For example, if you are clicking the same button repeatedly, try scrolling or typing something different.
+
     Your available actions are:
     - TYPE(text_to_type): Types a given string.
     - CLICK(x, y, description): Clicks on a specific coordinate on the screen. Provide a brief description of what you are clicking on.
+    - SCROLL(direction, description): Scrolls the page up or down. The direction can be 'up' or 'down'.
     - FINISH(final_answer): Use this action when you have successfully completed the objective. The final_answer should be the information you were asked to find.
-    
-    Analyze the screenshot and respond ONLY with a single, valid JSON object representing your next action.
+
+    Analyze the screenshot and your history, then respond ONLY with a single, valid JSON object representing your next action.
     Do not include any other text or explanations.
-    
+
+
+    in google classroom, you'll see the list of clases enrolled in, for example  CSE, 5CSE A, Web Techologies etc. You can click on any of the classes to see the classwork and assignments given.
+
     Example response for typing:
     {{"action": "TYPE", "parameters": {{"text_to_type": "latest news about ISRO"}}}}
-    
+
     Example response for clicking:
     {{"action": "CLICK", "parameters": {{"x": 500, "y": 350, "description": "Google search bar"}}}}
-    
+
+    Example response for scrolling:
+    {{"action": "SCROLL", "parameters": {{"direction": "down", "description": "scrolling to see more news articles"}}}}
+
     Example response when finished:
     {{"action": "FINISH", "parameters": {{"final_answer": "Chandrayaan-4 mission approved by government."}}}}
     """
-    
+
     # Create the proper image content format for Gemini API
     image_content = {
         "mime_type": screenshot["mime_type"],
         "data": screenshot["data"]
     }
-    
+
     try:
         model = genai.GenerativeModel('gemini-1.5-flash')
         response = model.generate_content([prompt, image_content])
-        
+
         # Clean up the model's response to extract only the JSON
         clean_response = response.text.strip().replace("```json", "").replace("```", "").strip()
         return json.loads(clean_response)
@@ -141,6 +153,13 @@ def execute_action(action_command):
         x = params.get("x")
         y = params.get("y")
         pyautogui.click(x=x, y=y)
+
+    elif action_type == "SCROLL":
+        direction = params.get("direction")
+        if direction == "up":
+            pyautogui.scroll(1000)
+        else:
+            pyautogui.scroll(-1000)
         
     elif action_type == "FINISH":
         final_answer = params.get("final_answer", "")
@@ -160,15 +179,19 @@ if __name__ == "__main__":
     time.sleep(5)
 
     is_running = True
+    action_history = []
     while is_running:
         # 1. Observe
         screenshot_data = take_screenshot()
         
         # 2. Think
-        action = get_agent_action(screenshot_data, USER_GOAL)
+        action = get_agent_action(screenshot_data, USER_GOAL, action_history)
         
         # 3. Act
         is_running = execute_action(action)
+        
+        # Add the action to the history
+        action_history.append(action)
         
         # Wait a moment for the screen to update after the action
         time.sleep(2)

@@ -5,7 +5,7 @@ applyTo: "**"
 {
 "project_overview": {
 "project_name": "Manus College Agent",
-"mission": "To create a robust backend service for an autonomous AI agent that can observe a computer screen, reason about a user's goal, and execute actions to achieve it, with a focus on academic research and assignment tasks.",
+"mission": "To create a robust backend service for an autonomous AI agent that can observe a computer screen, reason about a user's goal, and execute actions to achieve it, with a focus on academic research and assignment tasks. for doing academic research and assignments, from google classroom, coursera, edx, udemy etc.",
 "core_idea": "The backend will be the 'brain' and 'nervous system' of the agent. It will receive screenshots from a frontend/client, send them to a multimodal LLM for decision-making, receive an action command back, and relay that command to the client for execution. It will also manage the agent's state and memory.",
 "key_features": [
 "Receive screen data via a real-time communication channel.",
